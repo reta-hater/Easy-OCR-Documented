@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="OCR.ahk documentation — Windows.Media.Ocr wrapper for AutoHotkey v2.">
+<title>OCR.ahk Documentation</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#top"><span>OCR</span>.ahk</a>
+  <nav>
+    <a href="#getting-started">Getting Started</a>
+    <a href="#capture">Capture</a>
+    <a href="#results">Results</a>
+    <a href="#search">Search</a>
+    <a href="#pdf">PDF</a>
+    <a href="#api">API</a>
+  </nav>
+  <a class="github" href="https://github.com/" target="_blank" rel="noreferrer">GitHub ↗</a>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="side-title">Documentation</div>
+  <a href="#getting-started">Getting Started</a>
+  <a href="#installation">Installation</a>
+  <a href="#quick-start">Quick Start</a>
+  <div class="side-title">OCR Sources</div>
+  <a href="#desktop">Desktop</a>
+  <a href="#monitor">Monitor</a>
+  <a href="#rect">Screen Region</a>
+  <a href="#window">Window</a>
+  <a href="#file">Image File</a>
+  <a href="#bitmap">Bitmap</a>
+  <a href="#pdf">PDF</a>
+  <div class="side-title">Results</div>
+  <a href="#result-object">Result</a>
+  <a href="#line-word">Lines & Words</a>
+  <a href="#search">FindString</a>
+  <a href="#filter-crop">Filter & Crop</a>
+  <a href="#interaction">Click & Highlight</a>
+  <div class="side-title">Utilities</div>
+  <a href="#languages">Languages</a>
+  <a href="#waittext">WaitText</a>
+  <a href="#cluster">Cluster</a>
+  <a href="#arrays">Array Utilities</a>
+  <a href="#properties">Properties</a>
+  <div class="side-title">Reference</div>
+  <a href="#options">Options</a>
+  <a href="#api">API Reference</a>
+  <a href="#errors">Errors</a>
+</aside>
+
+<main id="top">
+<section class="hero">
+  <div class="eyebrow">AutoHotkey v2 · Windows OCR</div>
+  <h1>OCR<span>.ahk</span></h1>
+  <p class="lead">A native AutoHotkey v2 wrapper around <code>Windows.Media.Ocr</code> with screen, window, image, bitmap, and PDF OCR plus structured results and interaction helpers.</p>
+  <div class="badges"><span>v2.0.0</span><span>Windows</span><span>AutoHotkey v2</span></div>
+  <div class="actions"><a class="button primary" href="#quick-start">Get Started</a><a class="button" href="#api">API Reference</a></div>
+</section>
+
+<section class="intro-grid">
+  <div><div class="num">01</div><h3>Capture</h3><p>OCR the desktop, a monitor, a screen rectangle, a window, an image, a bitmap, or a PDF page.</p></div>
+  <div><div class="num">02</div><h3>Process</h3><p>Scale, crop, rotate, flip, grayscale, monochrome, or invert the source before recognition.</p></div>
+  <div><div class="num">03</div><h3>Interact</h3><p>Find recognized text, inspect coordinates, highlight it, click it, or use ControlClick.</p></div>
+</section>
+
+<section id="getting-started">
+<div class="section-head"><span>01</span><div><h2>Getting Started</h2><p>Install the file, include it, then call one of the OCR source methods.</p></div></div>
+<div id="installation" class="card">
+<h3>Requirements</h3>
+<ul><li>Windows</li><li>AutoHotkey v2</li><li>A Windows language component with OCR support for the language you want to recognize</li></ul>
+<p>Languages use BCP-47 language tags such as <code>en-us</code> and <code>en-AU</code>.</p>
+</div>
+<div id="quick-start" class="card">
+<h3>Minimal example</h3>
+<pre><code>#Requires AutoHotkey v2
+#Include OCR.ahk
+
+result := OCR.FromDesktop()
+MsgBox result.Text</code></pre>
+</div>
+</section>
+
+<section id="capture">
+<div class="section-head"><span>02</span><div><h2>OCR Sources</h2><p>Choose the source that matches what you need to recognize.</p></div></div>
+
+<div id="desktop" class="api-card"><h3>OCR.FromDesktop</h3><code>OCR.FromDesktop(Options?)</code><p>Captures the desktop and returns an <code>OCR.Result</code>.</p><pre><code>result := OCR.FromDesktop()
+MsgBox result.Text</code></pre></div>
+
+<div id="monitor" class="api-card"><h3>OCR.FromMonitor</h3><code>OCR.FromMonitor(Monitor?, Options?)</code><p>OCRs a specific monitor. The monitor can also be supplied through options.</p><pre><code>result := OCR.FromMonitor(2, {lang: "en-us"})</code></pre></div>
+
+<div id="rect" class="api-card"><h3>OCR.FromRect</h3><code>OCR.FromRect(X, Y, W, H, Options?)</code><p>OCRs a rectangular screen area.</p><pre><code>result := OCR.FromRect(100, 100, 800, 400, {scale: 2})
+MsgBox result.Text</code></pre></div>
+
+<div id="window" class="api-card"><h3>OCR.FromWindow</h3><code>OCR.FromWindow(WinTitle := "", Options?, WinText := "", ExcludeTitle := "", ExcludeText := "")</code><p>Captures a window. Result coordinates follow the <code>A_CoordModePixel</code> mode used during capture.</p>
+<table><tr><th>mode</th><th>Capture method</th></tr>
+<tr><td>0</td><td>GetDC + BitBlt</td></tr><tr><td>1</td><td>BitBlt with transparency disabled</td></tr><tr><td>2</td><td>PrintWindow</td></tr><tr><td>3</td><td>PrintWindow with transparency disabled</td></tr><tr><td>4</td><td>PrintWindow + PW_RENDERFULLCONTENT</td></tr><tr><td>5</td><td>Direct3D 11 / Windows.Graphics.Capture</td></tr></table>
+<pre><code>result := OCR.FromWindow("My Application", {mode: 4})
+MsgBox result.Text</code></pre>
+<p>Mode 5 is the slowest option but may work with games and other applications that are difficult to capture normally.</p>
+</div>
+
+<div id="file" class="api-card"><h3>OCR.FromFile</h3><code>OCR.FromFile(FileName, Options?)</code><p>OCRs an image file. Locations are relative to the top-left of the image.</p><pre><code>result := OCR.FromFile("image.png", {lang: "en-us"})
+MsgBox result.Text</code></pre><p>Supported decoder names: <code>gif</code>, <code>ico</code>, <code>jpeg</code>, <code>jpegxr</code>, <code>png</code>, <code>tiff</code>, <code>bmp</code>.</p></div>
+
+<div id="bitmap" class="api-card"><h3>OCR.FromBitmap</h3><code>OCR.FromBitmap(bitmap, Options?, hDC?)</code><p>OCRs a bitmap object, GDI+ bitmap pointer, HBITMAP, or compatible object containing a pointer.</p><pre><code>result := OCR.FromBitmap(bitmap)
+MsgBox result.Text</code></pre></div>
+
+<div class="api-card"><h3>OCR.Call</h3><code>OCR(RandomAccessStreamOrSoftwareBitmap, Options?)</code><p>The main low-level entry point. Use it when you already have a Windows Runtime <code>IRandomAccessStream</code> or <code>SoftwareBitmap</code>.</p></div>
+</section>
+
+<section id="options">
+<div class="section-head"><span>03</span><div><h2>Image Options</h2><p>Options can be passed to OCR source methods as an object.</p></div></div>
+<div class="card">
+<table><tr><th>Option</th><th>Purpose</th><th>Example</th></tr>
+<tr><td><code>lang</code> / <code>language</code></td><td>OCR language. Can also be a function returning a language.</td><td><code>{lang: "en-us"}</code></td></tr>
+<tr><td><code>scale</code></td><td>Scales the image before OCR.</td><td><code>{scale: 2}</code></td></tr>
+<tr><td><code>grayscale</code></td><td>Converts the image to grayscale.</td><td><code>{grayscale: true}</code></td></tr>
+<tr><td><code>monochrome</code></td><td>0–255 luminance threshold; pixels below it become black and others white.</td><td><code>{monochrome: 128}</code></td></tr>
+<tr><td><code>invertcolors</code></td><td>Inverts image colors.</td><td><code>{invertcolors: true}</code></td></tr>
+<tr><td><code>rotate</code></td><td>Clockwise rotation.</td><td><code>{rotate: 90}</code></td></tr>
+<tr><td><code>flip</code></td><td>Flip on the x or y axis.</td><td><code>{flip: "x"}</code></td></tr>
+<tr><td><code>x,y,w,h</code></td><td>Crop before scaling.</td><td><code>{x: 100, y: 50, w: 500, h: 200}</code></td></tr>
+<tr><td><code>decoder</code></td><td>Explicit image decoder.</td><td><code>{decoder: "png"}</code></td></tr>
+</table>
+</div>
+<div class="card"><h3>Combining options</h3><pre><code>result := OCR.FromDesktop({
+    lang: "en-us",
+    scale: 2,
+    grayscale: true,
+    rotate: 0
+})</code></pre></div>
+</section>
+
+<section id="results">
+<div class="section-head"><span>04</span><div><h2>OCR Results</h2><p>OCR returns structured objects instead of only a text string.</p></div></div>
+<div id="result-object" class="api-card"><h3>OCR.Result</h3>
+<table><tr><th>Property</th><th>Description</th></tr>
+<tr><td><code>Text</code></td><td>All recognized text.</td></tr>
+<tr><td><code>TextAngle</code></td><td>Clockwise rotation of recognized text.</td></tr>
+<tr><td><code>Lines</code></td><td>Array of <code>OCR.Line</code> objects.</td></tr>
+<tr><td><code>Words</code></td><td>Array of <code>OCR.Word</code> objects.</td></tr>
+<tr><td><code>ImageWidth</code></td><td>Width of the image used for OCR.</td></tr>
+<tr><td><code>ImageHeight</code></td><td>Height of the image used for OCR.</td></tr>
+</table>
+<pre><code>for word in result.Words {
+    MsgBox word.Text
+}</code></pre>
+</div>
+<div id="line-word" class="api-card"><h3>Lines and Words</h3>
+<p><code>OCR.Line</code> provides <code>Text</code>, <code>Words</code>, and <code>x,y,w,h</code>.</p>
+<p><code>OCR.Word</code> provides <code>Text</code>, <code>x,y,w,h</code>, and <code>BoundingRect</code>.</p>
+<pre><code>for line in result.Lines
+    MsgBox line.Text
+
+for word in result.Words
+    MsgBox word.Text " @ " word.x "," word.y</code></pre>
+</div>
+</section>
+
+<section id="search">
+<div class="section-head"><span>05</span><div><h2>Searching Text</h2><p>Turn OCR output into something your script can act on.</p></div></div>
+<div class="api-card"><h3>FindString</h3><code>Result.FindString(Needle, Options?)</code><p>Finds a string and returns an OCR result containing the matching words.</p>
+<table><tr><th>Option</th><th>Description</th></tr><tr><td><code>CaseSense</code></td><td>Case-sensitive matching.</td></tr><tr><td><code>IgnoreLinebreaks</code></td><td>Treats line breaks as spaces.</td></tr><tr><td><code>AllowOverlap</code></td><td>Allows overlapping matches.</td></tr><tr><td><code>i</code></td><td>Occurrence to return.</td></tr><tr><td><code>x,y,w,h</code></td><td>Restricts the search area.</td></tr><tr><td><code>SearchFunc</code></td><td>Custom search function.</td></tr></table>
+<pre><code>match := result.FindString("Confirm")
+match.Highlight()
+match.Click()</code></pre></div>
+<div class="api-card"><h3>FindStrings</h3><code>Result.FindStrings(Needle, Options?)</code><p>Returns all matching occurrences.</p><pre><code>for match in result.FindStrings("Error")
+    match.Highlight()</code></pre></div>
+</section>
+
+<section id="filter-crop">
+<div class="section-head"><span>06</span><div><h2>Filter & Crop</h2><p>Reduce a result to only the words or region you need.</p></div></section>
+<div class="api-card"><h3>Filter</h3><code>Result.Filter(callback)</code><p>Returns a result containing only words accepted by the callback.</p><pre><code>filtered := result.Filter((word) => StrLen(word.Text) > 3)</code></pre></div>
+<div class="api-card"><h3>Crop</h3><code>Result.Crop(x1, y1, x2, y2)</code><p>Creates a result containing OCR objects inside the rectangle defined by two points.</p><pre><code>cropped := result.Crop(100, 100, 600, 400)</code></pre></div>
+</section>
+
+<section id="interaction">
+<div class="section-head"><span>07</span><div><h2>Interaction</h2><p>OCR objects can be highlighted or used as mouse/control targets.</p></div></div>
+<div class="api-card"><h3>Highlight</h3><code>Result.Highlight(showTime?, color := "Red", d := 2)</code><p>Highlights an OCR object. The same method works for results, lines, words, and compatible objects containing <code>x,y,w,h</code>.</p><pre><code>word.Highlight()          ; default: 2 seconds
+word.Highlight(0)        ; keep visible
+word.Highlight(-2000)    ; non-blocking timer
+word.Highlight("clear")  ; clear this highlight
+OCR.ClearAllHighlights() ; clear all</code></pre></div>
+<div class="api-card"><h3>Click</h3><code>Result.Click(WhichButton?, ClickCount?, DownOrUp?)</code><p>Clicks the center of the OCR object's bounding rectangle. Window-relative information from <code>FromWindow</code> is respected.</p><pre><code>result.FindString("Start").Click()</code></pre></div>
+<div class="api-card"><h3>ControlClick</h3><code>Result.ControlClick(WinTitle?, WinText?, WhichButton?, ClickCount?, Options?, ExcludeTitle?, ExcludeText?)</code><p>Performs AutoHotkey <code>ControlClick</code> using the object's coordinates. A suitable window context or <code>WinTitle</code> is required.</p></div>
+<div class="api-card"><h3>OffsetCoordinates</h3><code>Result.OffsetCoordinates(offsetX?, offsetY?)</code><p>Moves every word's coordinates by an offset. When omitted, offsets can be taken from the result's <code>Relative</code> property.</p></div>
+</section>
+
+<section id="pdf">
+<div class="section-head"><span>08</span><div><h2>PDF OCR</h2><p>Render and recognize individual pages or ranges of a PDF.</p></div></div>
+<div class="api-card"><h3>FromPDF</h3><code>OCR.FromPDF(FileName, Options?, Start := 1, End?, Password := "")</code><p>Returns an array of OCR results, one for each processed page.</p><pre><code>pages := OCR.FromPDF("document.pdf")
+
+for page in pages
+    MsgBox page.Text</code></pre></div>
+<div class="api-card"><h3>FromPDFPage</h3><code>OCR.FromPDFPage(FileName, Page, Options?, Password := "")</code><p>OCRs one page. Page numbers are one-based.</p><pre><code>page := OCR.FromPDFPage("document.pdf", 3)
+MsgBox page.Text</code></pre></div>
+<div class="api-card"><h3>PDF Helpers</h3><code>OCR.GetPdfPageCount(FileName, Password := "")</code><br><code>OCR.GetPdfPageProperties(FileName, Page, Password := "")</code><p><code>GetPdfPageProperties</code> returns <code>{Width, Height, Rotation, PreferredZoom}</code>.</p></div>
+</section>
+
+<section id="languages">
+<div class="section-head"><span>09</span><div><h2>Languages</h2><p>Use Windows OCR language support through BCP-47 language tags.</p></div></div>
+<div class="card"><h3>Get available languages</h3><pre><code>MsgBox OCR.GetAvailableLanguages()</code></pre><h3>Load a language</h3><pre><code>OCR.LoadLanguage("en-us")</code></pre><p>The default language is the first available OCR language. Not every Windows language pack provides OCR support.</p></div>
+</section>
+
+<section id="waittext">
+<div class="section-head"><span>10</span><div><h2>WaitText</h2><p>Repeatedly call an OCR method until a target string is found.</p></div></div>
+<div class="api-card"><h3>OCR.WaitText</h3><code>OCR.WaitText(needle, timeout := -1, func?, casesense := False, comparefunc?)</code><pre><code>result := OCR.WaitText("Ready", 10000)
+
+if IsSet(result)
+    MsgBox "Ready detected!"</code></pre><p>By default the provided OCR method is used repeatedly. A custom function can be supplied for a particular screen region or source.</p><pre><code>result := OCR.WaitText(
+    "Ready",
+    10000,
+    () => OCR.FromRect(400, 300, 500, 200)
+)</code></pre></div>
+</section>
+
+<section id="cluster">
+<div class="section-head"><span>11</span><div><h2>Clustering</h2><p>Group OCR objects by position using the library's clustering helper.</p></div></div>
+<div class="api-card"><h3>OCR.Cluster</h3><code>OCR.Cluster(objs, eps_x := -1, eps_y := -1, minPts := 1, compareFunc?, &noise?)</code><p>Clusters objects based on distance. It can be used to create more accurate line-like groups from OCR words.</p><pre><code>clusters := OCR.Cluster(result.Words)
+
+for cluster in clusters
+    MsgBox cluster.Text</code></pre><p>Cluster objects contain position, size, combined text, and their grouped words.</p></div>
+</section>
+
+<section id="arrays">
+<div class="section-head"><span>12</span><div><h2>Array Utilities</h2><p>Small helpers included with the library.</p></div></div>
+<div class="card api-list">
+<p><code>OCR.SortArray(arr, optionsOrCallback := "N", key?)</code> — sorts an array in-place.</p>
+<p><code>OCR.ReverseArray(arr)</code> — reverses an array in-place.</p>
+<p><code>OCR.UniqueArray(arr)</code> — returns an array containing unique values.</p>
+<p><code>OCR.FlattenArray(arr)</code> — converts a multidimensional array into one dimension.</p>
+</div>
+</section>
+
+<section id="properties">
+<div class="section-head"><span>13</span><div><h2>Library Properties</h2><p>Runtime controls exposed directly by <code>OCR</code>.</p></div></div>
+<div class="card">
+<table><tr><th>Property</th><th>Purpose</th><th>Default</th></tr>
+<tr><td><code>OCR.Version</code></td><td>Library version.</td><td><code>"2.0.0"</code></td></tr>
+<tr><td><code>OCR.MaxImageDimension</code></td><td>Maximum image dimension reported by the Windows OCR engine.</td><td>System-defined</td></tr>
+<tr><td><code>OCR.PerformanceMode</code></td><td>Faster OCR acquisition at higher CPU usage when set to 1.</td><td><code>0</code></td></tr>
+<tr><td><code>OCR.DisplayImage</code></td><td>Displays the processed image before OCR.</td><td><code>0</code></td></tr>
+</table>
+<pre><code>OCR.PerformanceMode := 1
+OCR.DisplayImage := true</code></pre></div>
+</section>
+
+<section id="api">
+<div class="section-head"><span>14</span><div><h2>API Reference</h2><p>Public-facing entry points and commonly used result methods.</p></div></div>
+<div class="api-grid">
+<div><h3>OCR sources</h3><code>OCR.Call()</code><code>OCR.FromDesktop()</code><code>OCR.FromMonitor()</code><code>OCR.FromRect()</code><code>OCR.FromWindow()</code><code>OCR.FromFile()</code><code>OCR.FromBitmap()</code></div>
+<div><h3>PDF</h3><code>OCR.FromPDF()</code><code>OCR.FromPDFPage()</code><code>OCR.GetPdfPageCount()</code><code>OCR.GetPdfPageProperties()</code></div>
+<div><h3>Search / processing</h3><code>Result.FindString()</code><code>Result.FindStrings()</code><code>Result.Filter()</code><code>Result.Crop()</code><code>OCR.WaitText()</code><code>OCR.Cluster()</code></div>
+<div><h3>Interaction</h3><code>Result.Highlight()</code><code>Result.Click()</code><code>Result.ControlClick()</code><code>Result.OffsetCoordinates()</code><code>OCR.ClearAllHighlights()</code></div>
+<div><h3>Languages</h3><code>OCR.GetAvailableLanguages()</code><code>OCR.LoadLanguage()</code></div>
+<div><h3>Arrays</h3><code>OCR.SortArray()</code><code>OCR.ReverseArray()</code><code>OCR.UniqueArray()</code><code>OCR.FlattenArray()</code></div>
+</div>
+</section>
+
+<section id="errors">
+<div class="section-head"><span>15</span><div><h2>Errors & Limitations</h2><p>Handle normal AutoHotkey exceptions around OCR operations.</p></div></div>
+<div class="card"><pre><code>try {
+    result := OCR.FromFile("image.png")
+    MsgBox result.Text
+} catch Error as err {
+    MsgBox "OCR failed:`n" err.Message
+}</code></pre>
+<ul>
+<li>Target windows that cannot be found cause an error.</li>
+<li>Missing image files cause an error.</li>
+<li>Images exceeding the Windows OCR maximum dimension are rejected.</li>
+<li>Requested languages must have OCR support installed.</li>
+<li>Window capture behavior varies by application; try another <code>mode</code> when necessary.</li>
+<li>Small images may be scaled automatically; the library notes an apparent minimum of about 40 pixels.</li>
+</ul></div>
+</section>
+
+<footer>
+  <strong>OCR.ahk</strong><br>
+  Documentation for version 2.0.0 · AutoHotkey v2 · Windows.Media.Ocr
+</footer>
+</main>
+</div>
+<script src="assets/script.js"></script>
+</body>
+</html>
